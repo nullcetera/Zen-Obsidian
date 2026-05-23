@@ -28,7 +28,6 @@ export default class ZenModePlugin extends Plugin {
 	private enter() {
 		this.app.workspace.leftSplit.collapse();
 		this.app.workspace.rightSplit.collapse();
-		this.setFullscreen(true);
 		this.injectDynamicStyles();
 
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -51,7 +50,6 @@ export default class ZenModePlugin extends Plugin {
 			this.app.workspace.leftSplit.expand();
 			this.app.workspace.rightSplit.expand();
 		}
-		this.setFullscreen(false);
 		this.dynamicStyleEl?.remove();
 		this.dynamicStyleEl = null;
 
@@ -63,19 +61,6 @@ export default class ZenModePlugin extends Plugin {
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (view) {
 			view.setState({ ...view.getState(), mode: 'source' }, { history: false });
-		}
-	}
-
-	private setFullscreen(on: boolean) {
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-require-imports
-			const { getCurrentWindow } = require('@electron/remote') as typeof import('@electron/remote');
-			getCurrentWindow().setFullScreen(on);
-		} catch {
-			try {
-				// eslint-disable-next-line @typescript-eslint/no-require-imports
-				(require('electron') as { ipcRenderer: { send: (ch: string, ...a: unknown[]) => void } }).ipcRenderer.send('set-full-screen', on);
-			} catch { /* unavailable outside desktop */ }
 		}
 	}
 

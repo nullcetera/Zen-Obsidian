@@ -6,5 +6,5 @@
 	"description": "iA Writer-inspired distraction-free reading",
 	"author": "nullcetera",
 	"authorUrl": "https://github.com/nullcetera/Zen-Obsidian",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }

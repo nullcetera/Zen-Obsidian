@@ -9,10 +9,10 @@ One keystroke hides every UI element, enters fullscreen, and floats your note in
 ## Features
 
 - Collapses sidebars and hides all chrome (ribbon, tabs, status bar, header)
-- Enters native fullscreen via Electron
 - Switches the active note to preview/reading mode
 - Floating card with a blurred backdrop — light and dark themes
 - Smooth entrance animation
+- Configurable card width, font size, and sidebar restore behavior
 - Press **Escape** to exit at any time
 
 ---
@@ -55,11 +55,11 @@ One keystroke hides every UI element, enters fullscreen, and floats your note in
 
 ## Installation
 
-### Manual (recommended for now)
+### Manual
 
-1. In your vault, open `.obsidian/plugins/` (create the folder if it doesn't exist).
-2. Create a folder named `zen-mode`.
-3. Copy `main.js` and `manifest.json` into it.
+1. Go to the [latest release](https://github.com/nullcetera/Zen-Obsidian/releases/latest) and download `main.js`, `styles.css`, and `manifest.json`.
+2. In your vault, create the folder `.obsidian/plugins/zen-mode/`.
+3. Copy the three downloaded files into that folder.
 4. In Obsidian → **Settings → Community plugins**, disable Safe Mode and enable **Zen Mode**.
 
 ### BRAT (beta testing)
@@ -67,8 +67,8 @@ One keystroke hides every UI element, enters fullscreen, and floats your note in
 If you use the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin:
 
 1. Open BRAT settings → **Add Beta Plugin**.
-2. Paste this repo's URL.
-3. Enable the plugin in Community plugins.
+2. Paste `https://github.com/nullcetera/Zen-Obsidian`.
+3. Enable **Zen Mode** in Community plugins.
 
 ---
 
@@ -83,7 +83,34 @@ You can also run **Toggle Zen Mode** from the Command Palette (`Cmd/Ctrl + P`).
 
 ---
 
+## Settings
+
+Open **Settings → Zen Mode** to configure:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Max card width | `1080` px | Maximum width of the floating reading card |
+| Font size | `19` px | Body text size in the reading view |
+| Restore sidebars on exit | `on` | Re-expand both sidebars when leaving Zen Mode |
+
+---
+
+## Development
+
+```bash
+git clone https://github.com/nullcetera/Zen-Obsidian.git
+cd Zen-Obsidian
+pnpm install
+pnpm dev         # watch mode — rebuilds main.js on save
+pnpm build       # production build (minified, no sourcemap)
+pnpm lint        # ESLint
+```
+
+The compiled `main.js` is a build artifact and not tracked in git. Copy `main.js`, `styles.css`, and `manifest.json` into your vault's plugin folder to test locally.
+
+---
+
 ## Compatibility
 
 - Obsidian **1.4.0+**
-- Desktop only (requires Electron for fullscreen API)
+- Desktop and mobile
