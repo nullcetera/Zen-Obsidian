@@ -21,35 +21,11 @@ One keystroke hides every UI element, enters fullscreen, and floats your note in
 
 **Light mode**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ░░░░░░░░░░░░░░ blurred off-white backdrop ░░░░░░░░░░░░░░░  │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │                                                       │  │
-│  │   Your Note Title                                     │  │
-│  │                                                       │  │
-│  │   Body text in iA Writer Quattro, 19px / 1.9 lh.     │  │
-│  │   Clean card on #FAFAF8 with a subtle teal border.   │  │
-│  │                                                       │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+![light mode](img/light.png)
 
 **Dark mode**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓ near-black glassmorphism backdrop ▓▓▓▓▓▓▓▓  │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │                                                       │  │
-│  │   Your Note Title                                     │  │
-│  │                                                       │  │
-│  │   Text at rgba(255,255,255,0.82) on #1C1C1E card.    │  │
-│  │   Deep shadow + hairline white rim.                  │  │
-│  │                                                       │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+![dark mode](img/dark.png)
 
 ---
 
