@@ -3,7 +3,6 @@ import { DEFAULT_SETTINGS, ZenModeSettings, ZenModeSettingTab } from './settings
 
 export default class ZenModePlugin extends Plugin {
 	settings: ZenModeSettings;
-	private dynamicStyleEl: HTMLStyleElement | null = null;
 	private escHandler: ((e: KeyboardEvent) => void) | null = null;
 	private isZen = false;
 
@@ -13,26 +12,29 @@ export default class ZenModePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'toggle-zen',
-			name: 'Toggle Zen Mode',
+			name: 'Toggle',
 			callback: () => this.toggle(),
-			hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'z' }],
 		});
 	}
 
 	toggle() {
 		this.isZen = !this.isZen;
 		document.body.classList.toggle('ia-zen', this.isZen);
-		this.isZen ? this.enter() : this.exit();
+		if (this.isZen) {
+			this.enter();
+		} else {
+			this.exit();
+		}
 	}
 
 	private enter() {
 		this.app.workspace.leftSplit.collapse();
 		this.app.workspace.rightSplit.collapse();
-		this.injectDynamicStyles();
+		this.applyDynamicVars();
 
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (view) {
-			view.setState({ ...view.getState(), mode: 'preview' }, { history: false });
+			void view.setState({ ...view.getState(), mode: 'preview' }, { history: false });
 		}
 
 		this.escHandler = (e: KeyboardEvent) => {
@@ -50,8 +52,7 @@ export default class ZenModePlugin extends Plugin {
 			this.app.workspace.leftSplit.expand();
 			this.app.workspace.rightSplit.expand();
 		}
-		this.dynamicStyleEl?.remove();
-		this.dynamicStyleEl = null;
+		this.clearDynamicVars();
 
 		if (this.escHandler) {
 			document.removeEventListener('keydown', this.escHandler, true);
@@ -60,26 +61,25 @@ export default class ZenModePlugin extends Plugin {
 
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (view) {
-			view.setState({ ...view.getState(), mode: 'source' }, { history: false });
+			void view.setState({ ...view.getState(), mode: 'source' }, { history: false });
 		}
 	}
 
-	private injectDynamicStyles() {
-		this.dynamicStyleEl?.remove();
-		this.dynamicStyleEl = document.createElement('style');
-		this.dynamicStyleEl.id = 'ia-zen-dynamic';
-		this.dynamicStyleEl.textContent = `
-			body.ia-zen .workspace-split.mod-root { max-width: ${this.settings.maxWidth}px !important; }
-			body.ia-zen .markdown-preview-view { font-size: ${this.settings.fontSize}px !important; }
-		`;
-		document.head.appendChild(this.dynamicStyleEl);
+	private applyDynamicVars() {
+		document.body.style.setProperty('--zen-max-width', `${this.settings.maxWidth}px`);
+		document.body.style.setProperty('--zen-font-size', `${this.settings.fontSize}px`);
+	}
+
+	private clearDynamicVars() {
+		document.body.style.removeProperty('--zen-max-width');
+		document.body.style.removeProperty('--zen-font-size');
 	}
 
 	onunload() {
 		if (this.escHandler) {
 			document.removeEventListener('keydown', this.escHandler, true);
 		}
-		this.dynamicStyleEl?.remove();
+		this.clearDynamicVars();
 		document.body.classList.remove('ia-zen');
 	}
 

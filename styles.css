@@ -80,7 +80,7 @@ body.ia-zen .mod-header.markdown-rendered {
 /* -- Floating card -- */
 body.ia-zen .workspace-split.mod-root {
   margin: 40px auto !important;
-  max-width: 1080px !important;
+  max-width: var(--zen-max-width, 1080px) !important;
   width: calc(100% - 80px) !important;
   height: calc(100vh - 80px) !important;
   background: var(--z-card) !important;
@@ -101,7 +101,7 @@ body.ia-zen .workspace-split.mod-root {
 /* -- Reading pane -- */
 body.ia-zen .markdown-preview-view {
   font-family: 'iA Writer Quattro', 'Palatino Linotype', 'Georgia', serif !important;
-  font-size: 19px !important;
+  font-size: var(--zen-font-size, 19px) !important;
   line-height: 1.90 !important;
   color: var(--z-text) !important;
   padding: 72px 96px 100px !important;

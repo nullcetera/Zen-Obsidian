@@ -55,7 +55,7 @@ export class ZenModeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Restore sidebars on exit')
-			.setDesc('Re-expand both sidebars when leaving Zen Mode.')
+			.setDesc('Re-expand both sidebars when leaving zen mode.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.restoreSidebars)
 				.onChange(async (value) => {
