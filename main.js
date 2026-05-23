@@ -1,0 +1,387 @@
+const { Plugin, MarkdownView } = require('obsidian');
+
+module.exports = class ZenMode extends Plugin {
+  async onload() {
+    this.isZen = false;
+    this.styleEl = null;
+    this.escHandler = null;
+
+    this.addCommand({
+      id: 'toggle-zen',
+      name: 'Toggle Zen Mode',
+      callback: () => this.toggle(),
+      hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'z' }],
+    });
+
+    this.injectStyles();
+    console.log('Zen Mode loaded');
+  }
+
+  toggle() {
+    this.isZen = !this.isZen;
+    document.body.classList.toggle('ia-zen', this.isZen);
+    this.isZen ? this.enter() : this.exit();
+  }
+
+  enter() {
+    this.app.workspace.leftSplit.collapse();
+    this.app.workspace.rightSplit.collapse();
+    this.setFullscreen(true);
+
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (view) {
+      view.setState({ ...view.getState(), mode: 'preview' }, { history: false });
+    }
+
+    this.escHandler = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggle();
+      }
+    };
+    document.addEventListener('keydown', this.escHandler, true);
+  }
+
+  exit() {
+    this.app.workspace.leftSplit.expand();
+    this.app.workspace.rightSplit.expand();
+
+    if (this.escHandler) {
+      document.removeEventListener('keydown', this.escHandler, true);
+      this.escHandler = null;
+    }
+
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (view) {
+      view.setState({ ...view.getState(), mode: 'source' }, { history: false });
+    }
+  }
+
+  setFullscreen(bool) {
+    try {
+      const { getCurrentWindow } = require('@electron/remote');
+      getCurrentWindow().setFullScreen(bool);
+    } catch (e1) {
+      try {
+        require('electron').ipcRenderer.send('set-full-screen', bool);
+      } catch (e2) {}
+    }
+  }
+
+  injectStyles() {
+    this.styleEl = document.createElement('style');
+    this.styleEl.id = 'ia-zen-styles';
+    this.styleEl.textContent = CSS_CONTENT;
+    document.head.appendChild(this.styleEl);
+  }
+
+  onunload() {
+    if (this.escHandler) {
+      document.removeEventListener('keydown', this.escHandler, true);
+    }
+    this.styleEl?.remove();
+    document.body.classList.remove('ia-zen');
+    console.log('Zen Mode unloaded');
+  }
+};
+
+/* ---------------------------------------------------------
+   CSS
+   Light backdrop: blurred off-white surround
+   Dark backdrop:  near-black glassmorphism, card pops
+   Card: flat solid, subtle teal border
+   --------------------------------------------------------- */
+const CSS_CONTENT = `
+
+/* -- CSS variables: light -- */
+body.ia-zen {
+  --z-backdrop:      rgba(238, 236, 230, 0.88);
+  --z-blur:          blur(48px) saturate(140%);
+  --z-glass-border:  hsl(195deg 40% 60% / 0.20);
+  --z-card:          #FAFAF8;
+  --z-card-shadow:   0 2px 0 rgba(0,0,0,0.05), 0 20px 64px rgba(0,0,0,0.18);
+  --z-text:          #1c1c1c;
+  --z-h1:            #000000;
+  --z-h2:            #111111;
+  --z-h3:            #2a2a2a;
+  --z-muted:         rgba(0, 0, 0, 0.36);
+  --z-strong:        #000000;
+  --z-em:            #2c2c2c;
+  --z-border:        rgba(0, 0, 0, 0.08);
+  --z-code-bg:       rgba(0, 0, 0, 0.05);
+  --z-code-fg:       #2c2c2c;
+  --z-pre-bg:        rgba(0, 0, 0, 0.04);
+  --z-bq-border:     rgba(0, 0, 0, 0.18);
+  --z-bq-text:       rgba(0, 0, 0, 0.48);
+  --z-link:          #111111;
+  --z-link-deco:     rgba(0, 0, 0, 0.20);
+  --z-hr:            rgba(0, 0, 0, 0.09);
+  --z-th-bg:         rgba(0, 0, 0, 0.04);
+  --z-mark-bg:       rgba(255, 200, 60, 0.28);
+  --z-mark-shadow:   rgba(220, 160, 20, 0.30);
+}
+
+/* -- CSS variables: dark -- */
+body.ia-zen.theme-dark {
+  --z-backdrop:      rgba(4, 6, 8, 0.86);
+  --z-blur:          blur(56px) saturate(160%) brightness(0.85);
+  --z-glass-border:  hsl(195deg 40% 60% / 0.14);
+  --z-card:          #1C1C1E;
+  --z-card-shadow:   0 2px 0 rgba(0,0,0,0.50), 0 24px 72px rgba(0,0,0,0.80), 0 0 0 1px rgba(255,255,255,0.04);
+  --z-text:          rgba(255, 255, 255, 0.82);
+  --z-h1:            #ffffff;
+  --z-h2:            rgba(255, 255, 255, 0.92);
+  --z-h3:            rgba(255, 255, 255, 0.76);
+  --z-muted:         rgba(255, 255, 255, 0.36);
+  --z-strong:        #ffffff;
+  --z-em:            rgba(255, 255, 255, 0.70);
+  --z-border:        rgba(255, 255, 255, 0.09);
+  --z-code-bg:       rgba(255, 255, 255, 0.07);
+  --z-code-fg:       rgba(255, 255, 255, 0.70);
+  --z-pre-bg:        rgba(0, 0, 0, 0.38);
+  --z-bq-border:     rgba(255, 255, 255, 0.18);
+  --z-bq-text:       rgba(255, 255, 255, 0.50);
+  --z-link:          rgba(255, 255, 255, 0.82);
+  --z-link-deco:     rgba(255, 255, 255, 0.22);
+  --z-hr:            rgba(255, 255, 255, 0.09);
+  --z-th-bg:         rgba(255, 255, 255, 0.05);
+  --z-mark-bg:       rgba(255, 213, 100, 0.22);
+  --z-mark-shadow:   rgba(255, 213, 100, 0.35);
+}
+
+/* -- Backdrop (blurred surround) -- */
+body.ia-zen .workspace {
+  background: var(--z-backdrop) !important;
+  backdrop-filter: var(--z-blur) !important;
+  -webkit-backdrop-filter: var(--z-blur) !important;
+  transition: background 0.3s ease;
+}
+
+/* -- Hide all UI chrome -- */
+body.ia-zen .workspace-ribbon,
+body.ia-zen .workspace-tab-header-container,
+body.ia-zen .workspace-tab-header-container-inner,
+body.ia-zen .status-bar,
+body.ia-zen .sidebar-toggle-button,
+body.ia-zen .workspace-tab-container-before,
+body.ia-zen .workspace-tab-container-after,
+body.ia-zen .view-header,
+body.ia-zen .metadata-container,
+body.ia-zen .frontmatter-container,
+body.ia-zen .mod-header.markdown-rendered {
+  display: none !important;
+}
+
+/* -- Floating card -- */
+body.ia-zen .workspace-split.mod-root {
+  margin: 40px auto !important;
+  max-width: 1080px !important;
+  width: calc(100% - 80px) !important;
+  height: calc(100vh - 80px) !important;
+  background: var(--z-card) !important;
+  border: 1px solid var(--z-glass-border) !important;
+  border-radius: 6px !important;
+  box-shadow: var(--z-card-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden !important;
+  animation: zenIn 0.40s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes zenIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.984); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* -- Reading pane -- */
+body.ia-zen .markdown-preview-view {
+  font-family: 'iA Writer Quattro', 'Palatino Linotype', 'Georgia', serif !important;
+  font-size: 19px !important;
+  line-height: 1.90 !important;
+  color: var(--z-text) !important;
+  padding: 72px 96px 100px !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* -- No scrollbar -- */
+body.ia-zen .markdown-preview-view::-webkit-scrollbar { display: none; }
+body.ia-zen .markdown-preview-view { scrollbar-width: none; }
+
+/* -- Inline title -- */
+body.ia-zen .inline-title {
+  font-family: 'iA Writer Quattro', 'Georgia', serif !important;
+  font-size: 2.1em !important;
+  font-weight: 700 !important;
+  color: var(--z-h1) !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.15 !important;
+  background: transparent !important;
+}
+
+/* -- Headings -- */
+body.ia-zen .markdown-preview-view h1 {
+  font-size: 1.72em !important;
+  font-weight: 700 !important;
+  color: var(--z-h1) !important;
+  letter-spacing: -0.025em !important;
+  margin-top: 1.8em !important;
+  margin-bottom: 0.2em !important;
+  line-height: 1.2 !important;
+}
+body.ia-zen .markdown-preview-view h2 {
+  font-size: 1.20em !important;
+  font-weight: 700 !important;
+  color: var(--z-h2) !important;
+  letter-spacing: -0.01em !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 0.2em !important;
+}
+body.ia-zen .markdown-preview-view h3 {
+  font-size: 1.06em !important;
+  font-weight: 600 !important;
+  color: var(--z-h3) !important;
+  font-style: italic !important;
+  margin-top: 1.3em !important;
+}
+body.ia-zen .markdown-preview-view h4,
+body.ia-zen .markdown-preview-view h5,
+body.ia-zen .markdown-preview-view h6 {
+  color: var(--z-muted) !important;
+  font-weight: 600 !important;
+}
+
+/* -- Body text -- */
+body.ia-zen .markdown-preview-view p {
+  margin-bottom: 1.3em !important;
+  color: var(--z-text) !important;
+}
+
+/* -- Strong / em -- */
+body.ia-zen .markdown-preview-view strong {
+  font-weight: 700 !important;
+  color: var(--z-strong) !important;
+}
+body.ia-zen .markdown-preview-view em {
+  font-style: italic !important;
+  color: var(--z-em) !important;
+}
+
+/* -- Highlight -- */
+body.ia-zen .markdown-preview-view mark {
+  background: var(--z-mark-bg) !important;
+  color: inherit !important;
+  border-radius: 3px !important;
+  padding: 1px 3px !important;
+  box-shadow: inset 0 -1px 0 var(--z-mark-shadow) !important;
+}
+
+/* -- Inline code -- */
+body.ia-zen .markdown-preview-view code {
+  font-family: 'iA Writer Mono', 'Menlo', 'Monaco', monospace !important;
+  font-size: 0.84em !important;
+  background: var(--z-code-bg) !important;
+  color: var(--z-code-fg) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--z-border) !important;
+}
+
+/* -- Code blocks -- */
+body.ia-zen .markdown-preview-view pre {
+  font-family: 'iA Writer Mono', 'Menlo', 'Monaco', monospace !important;
+  font-size: 13.5px !important;
+  background: var(--z-pre-bg) !important;
+  border: 1px solid var(--z-border) !important;
+  border-radius: 10px !important;
+  padding: 20px 24px !important;
+  line-height: 1.65 !important;
+  margin: 1.6em 0 !important;
+}
+body.ia-zen .markdown-preview-view pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  font-size: inherit !important;
+  color: inherit !important;
+}
+
+/* -- Blockquote -- */
+body.ia-zen .markdown-preview-view blockquote {
+  border-left: 2px solid var(--z-bq-border) !important;
+  margin: 1.6em 0 !important;
+  padding: 0 0 0 1.4em !important;
+  color: var(--z-bq-text) !important;
+  font-style: italic !important;
+  background: transparent !important;
+}
+
+/* -- Callouts -- */
+body.ia-zen .callout {
+  background: var(--z-code-bg) !important;
+  border: 1px solid var(--z-border) !important;
+  border-radius: 10px !important;
+  padding: 14px 20px !important;
+}
+body.ia-zen .callout-title {
+  font-size: 0.78em !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  opacity: 0.55 !important;
+}
+
+/* -- Links -- */
+body.ia-zen .markdown-preview-view a {
+  color: var(--z-link) !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--z-link-deco) !important;
+  text-underline-offset: 3px !important;
+}
+body.ia-zen .markdown-preview-view a:hover {
+  text-decoration-color: var(--z-link) !important;
+}
+
+/* -- HR -- */
+body.ia-zen .markdown-preview-view hr {
+  border: none !important;
+  border-top: 1px solid var(--z-hr) !important;
+  margin: 2.6em auto !important;
+  width: 36% !important;
+}
+
+/* -- Lists -- */
+body.ia-zen .markdown-preview-view ul,
+body.ia-zen .markdown-preview-view ol {
+  color: var(--z-text) !important;
+  padding-left: 1.6em !important;
+}
+body.ia-zen .markdown-preview-view li {
+  margin-bottom: 0.3em !important;
+}
+body.ia-zen .markdown-preview-view li::marker {
+  color: var(--z-muted) !important;
+}
+
+/* -- Table -- */
+body.ia-zen .markdown-preview-view table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  font-size: 0.91em !important;
+}
+body.ia-zen .markdown-preview-view th,
+body.ia-zen .markdown-preview-view td {
+  border: 1px solid var(--z-border) !important;
+  padding: 9px 14px !important;
+  color: var(--z-text) !important;
+}
+body.ia-zen .markdown-preview-view th {
+  background: var(--z-th-bg) !important;
+  font-weight: 600 !important;
+  color: var(--z-h2) !important;
+}
+
+`;

@@ -1,0 +1,9 @@
+{
+  "id": "zen-mode",
+  "name": "Zen Mode",
+  "version": "2.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "iA Writer-inspired distraction-free reading",
+  "author": "you",
+  "isDesktopOnly": true
+}
